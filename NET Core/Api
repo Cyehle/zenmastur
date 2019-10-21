@@ -1,0 +1,93 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using SpeedDrop.Models;
+using SpeedDrop.Models.Requests;
+using SpeedDrop.Services;
+namespace SpeedDrop.Controllers
+{
+   [Route("api/users")]
+   [ApiController]
+   public class UserApiController : ControllerBase
+   {
+       [HttpGet, AllowAnonymous]
+       public ActionResult<List<User>> GetUsers()
+       {
+           List<User> users = null;
+           try
+           {
+               UserService _service = new UserService();
+               users = _service.GetUsers();
+           }
+           catch (Exception ex)
+           {
+               return StatusCode(500, ex.Message.ToString());
+           }
+           return users;
+       }
+       [HttpGet("{id:int}"), AllowAnonymous]
+       public ActionResult<User> Get(int id)
+       {
+           User user = null;
+           try
+           {
+               UserService _service = new UserService();
+               user = _service.Get(id);
+           }
+           catch (Exception ex)
+           {
+               return StatusCode(500, ex.Message.ToString());
+           }
+           return user;
+       }
+       [HttpPost, AllowAnonymous]
+       public ActionResult<int> Add(UserAddRequest model)
+       {
+           int id = 0;
+           try
+           {
+               UserService _service = new UserService();
+               id = _service.Add(model);
+           }
+           catch (Exception ex)
+           {
+               return StatusCode(500, ex.Message.ToString());
+           }
+           return id;
+       }
+       [HttpPut("{id:int}"), AllowAnonymous]
+       public ActionResult<int> Update(UserUpdateRequest model)
+       {
+           int code = model.Id;
+           try
+           {
+               UserService _service = new UserService();
+               _service.Update(model);
+           }
+           catch (Exception ex)
+           {
+               return StatusCode(500, ex.Message.ToString());
+           }
+           return code;
+       }
+       [HttpDelete("{id:int}")]
+       public ActionResult<int> Delete(int id)
+       {
+           int code = id;
+           try
+           {
+               UserService _service = new UserService();
+               _service.Delete(id);
+           }
+           catch (Exception ex)
+           {
+               return StatusCode(500, ex.Message.ToString());
+           }
+           return code;
+       }
+   }
+}

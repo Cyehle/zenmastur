@@ -1,0 +1,169 @@
+using SpeedDrop.Models;
+using SpeedDrop.Models.Requests;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Threading.Tasks;
+namespace SpeedDrop.Services
+{
+    public class UserService
+    {
+        private string connectionString = @"Server=*YouServer*\SQLEXPRESS;Database=*DB NAME*;Trusted_Connection=True;";
+        private string ConnectionString { get; set; }
+        //private ConnectionString _connectionString;
+        public UserService()
+        {
+            this.ConnectionString = connectionString;
+        }
+        public List<User> GetUsers()
+        {
+            List<User> users = null;
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                SqlCommand cmd = conn.CreateCommand();
+                cmd.CommandText = "dbo.Users_SelectAll";
+                cmd.CommandType = CommandType.StoredProcedure;
+                using (IDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        User user = new User();
+                        int startingIndex = 0;
+                        user.Id = reader.GetInt32(startingIndex++);
+                        user.FirstName = reader.GetString(startingIndex++);
+                        user.LastName = reader.GetString(startingIndex++);
+                        user.Email = reader.GetString(startingIndex++);
+                        user.Password = reader.GetString(startingIndex++);
+                        user.PasswordConfirm = reader.GetString(startingIndex++);
+                        user.DateAdded = reader.GetDateTime(startingIndex++);
+                        user.DateModified = reader.GetDateTime(startingIndex++);
+                        if (users == null)
+                        {
+                            users = new List<User>();
+                        }
+                        users.Add(user);
+                    }
+                }
+                return users;
+            }
+        }
+        public User Get(int id)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                SqlCommand cmd = conn.CreateCommand();
+                cmd.CommandText = "dbo.Users_SelectById";
+                User user = null;
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Id", id);
+                using (IDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        user = new User();
+                        int startingIndex = 0;
+                        user.Id = reader.GetInt32(startingIndex++);
+                        user.FirstName = reader.GetString(startingIndex++);
+                        user.LastName = reader.GetString(startingIndex++);
+                        user.Email = reader.GetString(startingIndex++);
+                        user.Password = reader.GetString(startingIndex++);
+                        user.PasswordConfirm = reader.GetString(startingIndex++);
+                        user.DateAdded = reader.GetDateTime(startingIndex++);
+                        user.DateModified = reader.GetDateTime(startingIndex++);
+                    }
+                }
+                return user;
+            }
+        }
+        public int Add(UserAddRequest model)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                SqlCommand cmd = conn.CreateCommand();
+                cmd.CommandText = "dbo.Users_Insert";
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@firstName", model.FirstName);
+                cmd.Parameters.AddWithValue("@lastName", model.LastName);
+                cmd.Parameters.AddWithValue("@email", model.Email);
+                cmd.Parameters.AddWithValue("@password", model.Password);
+                cmd.Parameters.AddWithValue("@passwordConfirm", model.PasswordConfirm);
+                SqlParameter idParameter = cmd.Parameters.Add("@Id", SqlDbType.Int);
+                idParameter.Direction = ParameterDirection.Output;
+                cmd.ExecuteNonQuery();
+                return (int)idParameter.Value;
+            }
+        }
+        public void Update(UserUpdateRequest model)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                SqlCommand cmd = conn.CreateCommand();
+                cmd.CommandText = "dbo.Users_Update";
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@firstName", model.FirstName);
+                cmd.Parameters.AddWithValue("@lastName", model.LastName);
+                cmd.Parameters.AddWithValue("@email", model.Email);
+                cmd.Parameters.AddWithValue("@password", model.Password);
+                cmd.Parameters.AddWithValue("@passwordConfirm", model.PasswordConfirm);
+                cmd.Parameters.AddWithValue("@Id", model.Id);
+                cmd.ExecuteNonQuery();
+               
+            }
+        }
+        public void Delete(int id)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                SqlCommand cmd = conn.CreateCommand();
+                cmd.CommandText = "dbo.Users_Delete";
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Id", id);
+                cmd.ExecuteNonQuery();
+            }
+        }
+        //public int Add(UserAddRequest model)
+        //{
+        //    int id = 0;
+        //    string procName = "[dbo].[Users_Insert]";
+        //    ExecuteNonQuery(procName, inputParamMapper: delegate (SqlParameterCollection col)
+        //    {
+        //        col.AddWithValue("@firstName", model.FirstName);
+        //        col.AddWithValue("@lastName", model.LastName);
+        //        col.AddWithValue("@email", model.Email);
+        //        col.AddWithValue("@password", model.Password);
+        //        col.AddiwthValue("@passwordConfirm", model.PasswordConfirm);
+        //        SqlParameter idOut = new SqlParameter("@Id", SqlDbType.Int);
+        //        idOut.Direction = ParameterDirection.Output;
+        //        col.Add(idOut);
+        //    },
+        //    returnParameters: delegate (SqlParameterCollection returnCollection)
+        //    {
+        //        object oId = returnCollection["@Id"].Value;
+        //        Int32.TryParse(oId.ToString(), out id);
+        //    }
+        //    );
+        //    return id;
+        //}
+        //        private static User MapUser(IDataReader reader)
+        //        {
+        //            User user = new User();
+        //            int startingIndex = 0;
+        //            user.Id = reader.GetInt32(startingIndex++);
+        //            user.FirstName = reader.GetString(startingIndex++);           
+        //            user.LastName = reader.GetString(startingIndex++);
+        //            user.Email = reader.GetString(startingIndex++);
+        //            user.Password = reader.GetString(startingIndex++);
+        //            user.PasswordConfirm = reader.GetString(startingIndex++);
+        //            user.DateAdded = reader.GetDateTime(startingIndex++);
+        //            user.DateModified = reader.GetDateTime(startingIndex++);
+        //            return user;
+        //        }
+    }
+}
